@@ -3,7 +3,6 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { INTERPROSCAN           } from '../modules/nf-core/interproscan/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { SEQKIT_STATS           } from '../modules/nf-core/seqkit/stats/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
