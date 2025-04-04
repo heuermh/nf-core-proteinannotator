@@ -1,4 +1,5 @@
-include { INTERPROSCAN                } from '../../../modules/local/interproscan/main'
+// Import Interproscan Subworfklow
+include { INTERPROSCAN                } from '../interproscan/main'
 
 
 
