@@ -10,28 +10,30 @@ nextflow_process {
     tag "modules_"
     tag "interproscan"
     tag "interproscan/setup"
-
-    setup {
-        run("UNTAR") {
-            script "modules/nf-core/untar/main.nf"
-            process {
-                """
-                input[0] = [
-                    [ id: 'interproscan-5.73-104.0' ], // meta map
-                    file("${moduleDir}/tests/fixtures/interproscan-5.73-104.0.tar.gz", type: 'dir', checkIfExists: true)
-                ]
-                """
-            }
-        }
-    }
+    tag "untar"
 
     test("interproscan - setup") {
+
+        setup {
+            // Untar the tar.gz interproscan file, because this is how it will be presented to the pipeline
+            run("UNTAR") {
+                script "modules/nf-core/untar/main.nf"
+                process {
+                    """
+                    input[0] = [
+                        [ id: 'interproscan-5.73-104.0' ], // meta map
+                        file("${moduleDir}/tests/fixtures/interproscan-5.73-104.0.tar.gz", checkIfExists: true)
+                    ]
+                    """
+                }
+            }
+        }
 
         when {
             process {
                 """
-                println(UNTAR.out.untar)
-                input[0] = [ file("$UNTAR.out.untar[1]/data"),  "5.73-104.0" ]
+                UNTAR.out.untar.println()
+                input[0] = [ file(UNTAR.out.untar[1].getName() + "/data", type: "dir"),  "5.73-104.0" ]
                 """
 
             }

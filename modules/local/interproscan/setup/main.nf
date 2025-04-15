@@ -37,8 +37,8 @@ process INTERPROSCAN_SETUP {
     tuple path(interproscan_db, stageAs: "data"), val(db_version)
 
     output:
-    tuple path("data/"), val(db_version)
-    path "versions.yml"           , emit: versions
+    tuple path("data/"), val(db_version), emit: interproscan_db_prepared
+    path "versions.yml"                 , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
