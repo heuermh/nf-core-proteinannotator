@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { DSHBIO_FASTATOPARQUET  } from '../modules/local/dshbio/fastatoparquet/main'
-include { DUCKDB_AMINOACIDHISTOGRAM  } from '../modules/local/duckdb/aminoacidhistogram/main'
+include { EIDER_AMINOACIDHISTOGRAM  } from '../modules/local/eider/aminoacidhistogram/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { SEQKIT_STATS           } from '../modules/nf-core/seqkit/stats/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
@@ -41,8 +41,8 @@ workflow PROTEINANNOTATOR {
     ch_versions = ch_versions.mix(DSHBIO_FASTATOPARQUET.out.versions)
 
     // todo: move this to stats on input fasta subworkflow
-    DUCKDB_AMINOACIDHISTOGRAM(DSHBIO_FASTATOPARQUET.out.parquet)
-    ch_versions = ch_versions.mix(DUCKDB_AMINOACIDHISTOGRAM.out.versions)
+    EIDER_AMINOACIDHISTOGRAM(DSHBIO_FASTATOPARQUET.out.parquet)
+    ch_versions = ch_versions.mix(EIDER_AMINOACIDHISTOGRAM.out.versions)
 
     //
     // Collate and save software versions
