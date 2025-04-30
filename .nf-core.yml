@@ -9,7 +9,13 @@ template:
   author: Olga Botvinnik
   description: The best protein annotation pipeline in the world. Protein fasta ->
     ??? -> Annotations!
-  force: false
+  author: Olga Botvinnik
+  version: 1.0.0dev
+  force: true
+  outdir: .
+  skip_features:
+    - fastqc
+    - igenomes
   is_nfcore: true
   name: proteinannotator
   org: nf-core
