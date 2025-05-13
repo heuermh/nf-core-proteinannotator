@@ -4,8 +4,8 @@
 //               https://nf-co.re/join
 // TODO nf-core: A subworkflow SHOULD import at least two modules
 
-include { INTERPROSCAN_RUN     } from '../../../modules/local/interproscan/main'
-include { UNTAR                } from '../../../modules/nf-core/untar/main'
+include { INTERPROSCAN     } from '../../../modules/local/interproscan/main'
+include { UNTAR            } from '../../../modules/nf-core/untar/main'
 
 workflow INTERPROSCAN {
 
@@ -42,18 +42,18 @@ workflow INTERPROSCAN {
         error("No interproscan database provided with either --interproscan_database or --interproscan_tar_gz! Exiting.")
     }
 
-    INTERPROSCAN_RUN (
+    INTERPROSCAN (
         ch_multifasta,
         interproscan_db
     )
-    ch_versions = ch_versions.mix(INTERPROSCAN_RUN.out.versions.first())
+    ch_versions = ch_versions.mix(INTERPROSCAN.out.versions.first())
 
     emit:
     // // TODO nf-core: edit emitted channels
-    tsv      = INTERPROSCAN_RUN.out.tsv          // channel: [ val(meta), [ tsv ] ]
-    xml      = INTERPROSCAN_RUN.out.xml          // channel: [ val(meta), [ xml ] ]
-    gff3     = INTERPROSCAN_RUN.out.gff3         // channel: [ val(meta), [ gff3 ] ]
-    json     = INTERPROSCAN_RUN.out.json         // channel: [ val(meta), [ json ] ]
+    tsv      = INTERPROSCAN.out.tsv          // channel: [ val(meta), [ tsv ] ]
+    xml      = INTERPROSCAN.out.xml          // channel: [ val(meta), [ xml ] ]
+    gff3     = INTERPROSCAN.out.gff3         // channel: [ val(meta), [ gff3 ] ]
+    json     = INTERPROSCAN.out.json         // channel: [ val(meta), [ json ] ]
 
     versions = ch_versions                     // channel: [ versions.yml ]
 }

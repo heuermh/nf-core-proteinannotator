@@ -8,9 +8,9 @@ nextflow_process {
     tag "modules"
     tag "modules_"
     tag "interproscan"
-    tag "interproscan/run"
+    tag "interproscan"
 
-    test("interproscan - run") {
+    test("interproscan") {
 
         when {
             process {
