@@ -71,15 +71,10 @@ workflow PIPELINE_INITIALISATION {
         .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
         .map {
             meta, fasta ->
-                return [ meta, [ fasta ] ]
+                return [ meta, fasta ]
         }
-        .groupTuple()
         .map { samplesheet ->
             validateInputSamplesheet(samplesheet)
-        }
-        .map {
-            meta, fastas ->
-                return [ meta, fastas.flatten() ]
         }
         .set { ch_samplesheet }
 
