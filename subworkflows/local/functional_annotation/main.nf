@@ -33,7 +33,6 @@ workflow FUNCTIONAL_ANNOTATION {
 
     INTERPROSCAN (
         ch_multifasta,
-        [file(params.interproscan_database, checkIfExists: true), params.interproscan_database_version],
     )
     ch_versions = ch_versions.mix(INTERPROSCAN.out.versions.first())
 
