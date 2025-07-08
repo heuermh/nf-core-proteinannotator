@@ -1,12 +1,14 @@
 lint:
   files_exist:
     - .github/workflows/ci.yml
+    - conf/igenomes.config
+    - conf/igenomes_ignored.config
   files_unchanged:
     - assets/nf-core-proteinannotator_logo_light.png
     - docs/images/nf-core-proteinannotator_logo_light.png
     - docs/images/nf-core-proteinannotator_logo_dark.png
     - .github/PULL_REQUEST_TEMPLATE.md
-nf_core_version: 3.3.1
+nf_core_version: 3.3.2
 repository_type: pipeline
 template:
   author: Olga Botvinnik
