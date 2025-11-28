@@ -17,7 +17,7 @@
                 "type": "string",
                 "format": "file-path",
                 "exists": true,
-                "pattern": "^\\S+\\.f(ast)?a(\\.gz)?$",
+                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
                 "errorMessage": "Fasta file for each sample must be provided, cannot contain spaces and must have extension '.fa.gz', '.fa', '.fasta', or '.fasta.gz'"
             }
         },
