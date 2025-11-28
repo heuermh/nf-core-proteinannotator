@@ -14,3 +14,6 @@ bin/
 ro-crate-metadata.json
 modules/nf-core/
 subworkflows/nf-core/
+**/Makefile
+Makefile
+modules/local/interproscan/tests/fixtures/interproscan_db/data

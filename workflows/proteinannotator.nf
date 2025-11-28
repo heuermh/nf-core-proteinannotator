@@ -3,12 +3,15 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { paramsSummaryMap       } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { MULTIQC } from '../modules/nf-core/multiqc/main'
+include { SEQKIT_STATS } from '../modules/nf-core/seqkit/stats/main'
+include { paramsSummaryMap } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_proteinannotator_pipeline'
-
+include { FUNCTIONAL_ANNOTATION } from '../subworkflows/local/functional_annotation'
+include { MMSEQS_SEARCH } from '../modules/nf-core/mmseqs/search/main'
+include { MTMALIGN_ALIGN } from '../modules/nf-core/mtmalign/align/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -16,13 +19,25 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_prot
 */
 
 workflow PROTEINANNOTATOR {
-
     take:
     ch_samplesheet // channel: samplesheet read in from --input
+
     main:
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
+
+    ch_samplesheet.view()
+
+    FUNCTIONAL_ANNOTATION(
+        ch_samplesheet
+    )
+
+
+    // todo: move this to stats on input fasta subworkflow
+    SEQKIT_STATS(ch_samplesheet)
+    ch_versions = ch_versions.mix(SEQKIT_STATS.out.versions)
+    ch_versions = ch_versions.mix(FUNCTIONAL_ANNOTATION.out.versions.first())
 
     //
     // Collate and save software versions
@@ -48,11 +63,11 @@ workflow PROTEINANNOTATOR {
         .mix(topic_versions_string)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
-            name: 'nf_core_'  +  'proteinannotator_software_'  + 'mqc_'  + 'versions.yml',
+            name: 'nf_core_' + 'proteinannotator_software_' + 'mqc_' + 'versions.yml',
             sort: true,
-            newLine: true
-        ).set { ch_collated_versions }
-
+            newLine: true,
+        )
+        .set { ch_collated_versions }
 
     //
     // MODULE: MultiQC
@@ -81,26 +96,20 @@ workflow PROTEINANNOTATOR {
     ch_multiqc_files = ch_multiqc_files.mix(
         ch_methods_description.collectFile(
             name: 'methods_description_mqc.yaml',
-            sort: true
+            sort: true,
         )
     )
 
-    MULTIQC (
+    MULTIQC(
         ch_multiqc_files.collect(),
         ch_multiqc_config.toList(),
         ch_multiqc_custom_config.toList(),
         ch_multiqc_logo.toList(),
         [],
-        []
+        [],
     )
 
-    emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                 // channel: [ path(versions.yml) ]
-
+    emit:
+    multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
+    versions = ch_versions // channel: [ path(versions.yml) ]
 }
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    THE END
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
