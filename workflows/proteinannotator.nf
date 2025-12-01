@@ -3,15 +3,17 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { MULTIQC } from '../modules/nf-core/multiqc/main'
-include { SEQKIT_STATS } from '../modules/nf-core/seqkit/stats/main'
-include { paramsSummaryMap } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { FAA_SEQFU_SEQKIT       } from '../subworkflows/nf-core/faa_seqfu_seqkit/main'
+include { FUNCTIONAL_ANNOTATION  } from '../subworkflows/local/functional_annotation'
+include { MULTIQC                } from '../modules/nf-core/multiqc/main'
+include { paramsSummaryMap       } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_proteinannotator_pipeline'
-include { FUNCTIONAL_ANNOTATION } from '../subworkflows/local/functional_annotation'
-include { MMSEQS_SEARCH } from '../modules/nf-core/mmseqs/search/main'
-include { MTMALIGN_ALIGN } from '../modules/nf-core/mtmalign/align/main'
+// TODO remove if unused
+// include { MMSEQS_SEARCH } from '../modules/nf-core/mmseqs/search/main'
+// include { MTMALIGN_ALIGN } from '../modules/nf-core/mtmalign/align/main'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -20,29 +22,32 @@ include { MTMALIGN_ALIGN } from '../modules/nf-core/mtmalign/align/main'
 
 workflow PROTEINANNOTATOR {
     take:
-    ch_samplesheet // channel: samplesheet read in from --input
+    ch_samplesheet      // channel: samplesheet read in from --input
+    skip_preprocessing  // boolean
 
     main:
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
 
-    ch_samplesheet.view()
+    FAA_SEQFU_SEQKIT( ch_samplesheet, skip_preprocessing )
+    ch_versions = ch_versions.mix( FAA_SEQFU_SEQKIT.out.versions.first() )
 
-    FUNCTIONAL_ANNOTATION(
-        ch_samplesheet
-    )
-
-
-    // todo: move this to stats on input fasta subworkflow
-    SEQKIT_STATS(ch_samplesheet)
-    ch_versions = ch_versions.mix(SEQKIT_STATS.out.versions)
-    ch_versions = ch_versions.mix(FUNCTIONAL_ANNOTATION.out.versions.first())
+    // Replace input fasta and join back in samplesheet to ensure in sync in case of multiple sequence files
+    ch_samplesheet_updated = ch_samplesheet
+        .combine(FAA_SEQFU_SEQKIT.out.fasta, by: 0)
+        .map {
+            meta, _fasta, updated_fasta ->
+            [ meta, updated_fasta ]
+        }
+    ch_samplesheet_updated.view()
+    FUNCTIONAL_ANNOTATION( ch_samplesheet_updated )
+    ch_versions = ch_versions.mix( FUNCTIONAL_ANNOTATION.out.versions.first() )
 
     //
     // Collate and save software versions
     //
-    def topic_versions = Channel.topic("versions")
+    def topic_versions = channel.topic("versions")
         .distinct()
         .branch { entry ->
             versions_file: entry instanceof Path
@@ -99,6 +104,8 @@ workflow PROTEINANNOTATOR {
             sort: true,
         )
     )
+
+    ch_multiqc_files = ch_multiqc_files.mix(FAA_SEQFU_SEQKIT.out.multiqc_files.collect{it[1]}.ifEmpty([]))
 
     MULTIQC(
         ch_multiqc_files.collect(),
